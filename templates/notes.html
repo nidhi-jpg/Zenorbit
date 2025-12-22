@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+
+{% block title %}ZEN-ORBIT - Notes{% endblock title %}
+
+{% block extra_css %}
+<style>
+.notes-container {
+    max-width: 1000px;
+    margin: 100px auto;
+    padding: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.notes-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid rgba(197, 126, 211, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.notes-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(197, 126, 211, 0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.notes-card:hover::before {
+    opacity: 1;
+}
+
+.page-title {
+    text-align: center;
+    padding-top: 80px;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.page-title h1 {
+    font-size: 42px;
+    color: #C57ED3;
+    margin-bottom: 15px;
+    text-shadow: 0 0 20px rgba(197, 126, 211, 0.5);
+    position: relative;
+    display: inline-block;
+}
+
+.page-title h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #C57ED3, transparent);
+    border-radius: 3px;
+}
+
+.page-title p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+}
+
+.note-form {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+    border: 2px solid rgba(197, 126, 211, 0.2);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 2;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+}
+
+.form-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    }
+
+    .form-control {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(197, 126, 211, 0.3);
+    border-radius: 15px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    cursor: text;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: rgba(197, 126, 211, 0.5);
+    box-shadow: 0 0 20px rgba(197, 126, 211, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+textarea.form-control {
+    min-height: 150px;
+    resize: vertical;
+    font-family: inherit;
+    }
+
+    .btn-primary {
+    background: rgba(197, 126, 211, 0.2);
+    color: white;
+    border: 2px solid rgba(197, 126, 211, 0.3);
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+    }
+
+    .btn-primary:hover {
+    background: rgba(197, 126, 211, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(197, 126, 211, 0.3);
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.notes-list {
+    margin-top: 40px;
+}
+
+.note-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: 2px solid rgba(197, 126, 211, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+}
+
+.note-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(197, 126, 211, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.note-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px) translateY(-2px);
+    border-color: rgba(197, 126, 211, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.note-item:hover::before {
+    transform: translateX(100%);
+}
+
+.note-title {
+    color: #C57ED3;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.note-content {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.note-date {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    display: block;
+}
+
+.note-actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.delete-btn {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 2px solid rgba(220, 53, 69, 0.3);
+    padding: 8px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background: rgba(220, 53, 69, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    font-size: 16px;
+}
+
+.alert {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    border: 2px solid;
+}
+
+.alert-success {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.alert-error {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.3);
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="page-title">
+    <h1>My Notes</h1>
+    <p>Capture your thoughts and ideas</p>
+</div>
+
+<div class="notes-container">
+    <div class="notes-card">
+        <div id="message-container"></div>
+
+        <form id="note-form" method="post" action="{% url 'notes' %}" class="note-form">
+        {% csrf_token %}
+        <div class="form-group">
+                <label for="name">Title</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter note title" required>
+        </div>
+
+        <div class="form-group">
+                <label for="desc">Content</label>
+                <textarea class="form-control" id="desc" name="desc" placeholder="Write your note here..." required></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Save Note</button>
+        </form>
+
+        <div class="notes-list" id="notes-list">
+            {% if notes %}
+                {% for note in notes %}
+                    <div class="note-item" data-note-id="{{ note.id }}">
+                        <div class="note-actions">
+                            <form method="post" action="{% url 'delete_note' note.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this note?')">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                        <h3 class="note-title">{{ note.name }}</h3>
+                        <div class="note-content">{{ note.desc }}</div>
+                        <span class="note-date">{{ note.date|date:"F j, Y, g:i a" }}</span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    No notes yet. Start by creating your first note!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('note-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const messageContainer = document.getElementById('message-container');
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Create new note element
+            const noteElement = document.createElement('div');
+            noteElement.className = 'note-item';
+            noteElement.dataset.noteId = data.note.id;
+            noteElement.innerHTML = `
+                <div class="note-actions">
+                    <form method="post" action="/notes/delete/${data.note.id}/" style="display: inline;">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this note?')">
+                            Delete
+                        </button>
+    </form>
+</div>
+                <h3 class="note-title">${data.note.name}</h3>
+                <div class="note-content">${data.note.desc}</div>
+                <span class="note-date">${data.note.date}</span>
+            `;
+            
+            // Add to the beginning of the notes list
+            const notesList = document.getElementById('notes-list');
+            if (notesList.querySelector('.empty-state')) {
+                notesList.innerHTML = '';
+            }
+            notesList.insertBefore(noteElement, notesList.firstChild);
+            
+            // Clear form
+            this.reset();
+            
+            // Show success message
+            messageContainer.innerHTML = `
+                <div class="alert alert-success">
+                    Note saved successfully!
+                </div>
+            `;
+        } else {
+            // Show error message
+            messageContainer.innerHTML = `
+                <div class="alert alert-error">
+                    ${data.message}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        messageContainer.innerHTML = `
+            <div class="alert alert-error">
+                An error occurred while saving the note.
+            </div>
+        `;
+    });
+});
+
+// Add delete functionality
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('delete-btn')) {
+        e.preventDefault();
+        const form = e.target.closest('form');
+        const noteItem = form.closest('.note-item');
+        const noteId = noteItem.dataset.noteId;
+        
+        if (confirm('Are you sure you want to delete this note?')) {
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    noteItem.remove();
+                    const messageContainer = document.getElementById('message-container');
+                    messageContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            ${data.message}
+                        </div>
+                    `;
+                } else {
+                    const messageContainer = document.getElementById('message-container');
+                    messageContainer.innerHTML = `
+                        <div class="alert alert-error">
+                            ${data.message}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                const messageContainer = document.getElementById('message-container');
+                messageContainer.innerHTML = `
+                    <div class="alert alert-error">
+                        An error occurred while deleting the note.
+                    </div>
+                `;
+            });
+        }
+    }
+});
+</script>
+{% endblock content %}

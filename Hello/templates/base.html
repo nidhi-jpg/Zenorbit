@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZEN-ORBIT{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            font-family: 'Poppins', sans-serif; /* Default font */
+            background: #090a0f;
+            overflow-x: hidden;
+            color: white;
+        }
+
+        /* Header styles */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 40px;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100; /* Ensure header is on top */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .site-logo {
+            font-family: 'Inter', sans-serif; /* Or other desired font */
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .main-nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .main-nav li {
+            margin-left: 30px;
+        }
+
+        .main-nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .main-nav a:hover {
+            color: #fff;
+        }
+
+        /* Add padding to body to prevent content from being hidden by fixed header */
+        body {
+            padding-top: 70px; /* Adjust based on header height */
+        }
+
+        /* Subtle Star Field */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1; /* Place behind content */
+            pointer-events: none; /* Allow clicks/interactions with content */
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8; /* Increased opacity */
+            animation: twinkle 3s infinite ease-in-out alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.5; transform: scale(1); } /* Adjusted starting opacity */
+            100% { opacity: 1; transform: scale(1.2); } /* Adjusted ending opacity and scale */
+        }
+
+    </style>
+    {% block extra_css_base %}{% endblock %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="{% url 'Hello:home' %}" class="site-logo">ZEN-ORBIT</a>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="{% url 'Hello:home' %}">Home</a></li>
+                <li><a href="{% url 'Hello:todo' %}">To do list</a></li>
+                <li><a href="{% url 'Hello:pomodoro' %}">Pomodoro</a></li>
+                <li><a href="{% url 'Hello:notes' %}">Notes</a></li>
+                <li><a href="{% url 'Hello:relax' %}">Relax</a></li>
+                <li><a href="{% url 'Hello:habit' %}">Habit</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'Hello:logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'Hello:login' %}">Login</a></li>
+                    <li><a href="{% url 'Hello:signup' %}">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    {# Star field container #}
+    <div class="stars" id="star-container"></div>
+
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% block extra_js %}
+    <script>
+        // Function to create and position stars
+        function createStars() {
+            const numStars = 200; // Increased number of stars
+            const starContainer = document.getElementById("star-container");
+            starContainer.innerHTML = ''; // Clear existing stars
+
+            for (let i = 0; i < numStars; i++) {
+                let star = document.createElement("span");
+                star.classList.add("star");
+
+                // Random position within the viewport
+                let x = Math.random() * window.innerWidth;
+                let y = Math.random() * window.innerHeight;
+
+                star.style.left = `${x}px`;
+                star.style.top = `${y}px`;
+
+                // Random animation delay and duration for twinkling effect
+                let delay = Math.random() * 4; // Up to 4 seconds delay
+                let duration = Math.random() * 1.5 + 0.5; // 0.5 to 2 seconds duration
+
+                star.style.animationDelay = `${delay}s`;
+                star.style.animationDuration = `${duration}s`;
+
+                starContainer.appendChild(star);
+            }
+        }
+
+        // Create stars on page load and resize
+        createStars();
+        window.addEventListener('resize', createStars);
+    </script>
+    {% endblock %}
+</body>
+</html>

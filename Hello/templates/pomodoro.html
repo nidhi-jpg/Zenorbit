@@ -1,0 +1,707 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pomodoro Timer - ZENORBIT{% endblock %}
+
+{% block content %}
+<div class="pomodoro-container">
+    <div class="timer-box">
+        <div class="timer-header">
+            <h1 class="gradient-text">Pomodoro Timer</h1>
+            <p class="timer-subtitle">Stay focused, stay productive</p>
+        </div>
+
+        <div class="timer-display">
+            <div class="time" id="time">25:00</div>
+            <div class="timer-controls">
+                <button class="timer-btn" id="startBtn">
+                    <i class="fas fa-play"></i>
+                    <span>Start</span>
+                </button>
+                <button class="timer-btn" id="pauseBtn" style="display: none;">
+                    <i class="fas fa-pause"></i>
+                    <span>Pause</span>
+                </button>
+                <button class="timer-btn" id="resetBtn">
+                    <i class="fas fa-redo"></i>
+                    <span>Reset</span>
+                </button>
+            </div>
+        </div>
+
+        {# Progress Bar #}
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="timer-modes">
+            <button class="mode-btn active" data-mode="pomodoro">Pomodoro</button>
+            <button class="mode-btn" data-mode="shortBreak">Short Break</button>
+            <button class="mode-btn" data-mode="longBreak">Long Break</button>
+        </div>
+
+       
+
+        <div class="timer-settings">
+            <h3>Set Durations (minutes)</h3>
+            <div class="setting-item">
+                <label for="pomodoroTime">Pomodoro:</label>
+                <input type="number" id="pomodoroTimeInput" value="25" min="1">
+            </div>
+            <div class="setting-item">
+                <label for="shortBreakTime">Short Break:</label>
+                <input type="number" id="shortBreakTimeInput" value="5" min="1">
+            </div>
+            <div class="setting-item">
+                <label for="longBreakTime">Long Break:</label>
+                <input type="number" id="longBreakTimeInput" value="15" min="1">
+            </div>
+        </div>
+
+        <div class="timer-stats">
+            <div class="stat-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Completed: <span id="completedCount">0</span></span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-clock"></i>
+                <span>Total Focus: <span id="totalFocus">0</span> min</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Audio for completion sound #}
+<audio id="alarmSound" src="https://www.orangefreesounds.com/wp-content/uploads/2020/04/Alert-notification.mp3" preload="auto"></audio>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    .pomodoro-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: #000000;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Cosmic background with stars */
+    .pomodoro-container::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 160px 120px, #fff, rgba(0,0,0,0));
+        background-repeat: repeat;
+        background-size: 200px 200px;
+        animation: twinkle 2s infinite;
+        opacity: 0.3;
+    }
+
+    /* Nebula effect */
+    .pomodoro-container::after {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 20%, rgba(109, 213, 237, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(197, 126, 211, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        filter: blur(40px);
+        animation: nebulaPulse 15s infinite alternate;
+        opacity: 0.5;
+    }
+
+    @keyframes twinkle {
+        0% { opacity: 0.3; }
+        50% { opacity: 0.5; }
+        100% { opacity: 0.3; }
+    }
+
+    @keyframes nebulaPulse {
+        0% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+        50% { transform: scale(1.1) rotate(2deg); opacity: 0.7; }
+        100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+    }
+
+    .timer-box {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 1.5rem 1.8rem;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            inset 0 0 32px rgba(109, 213, 237, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        animation: fadeIn 0.5s ease-out;
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+    }
+
+    /* Floating animation for the card */
+    @keyframes float {
+        0% { transform: translateY(0px) rotateX(0deg); }
+        50% { transform: translateY(-5px) rotateX(1deg); }
+        100% { transform: translateY(0px) rotateX(0deg); }
+    }
+
+    .timer-box {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .timer-header {
+        text-align: center;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    /* Orbiting particles around the title */
+    .timer-header::before,
+    .timer-header::after {
+        content: '';
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #6dd5ed;
+        filter: blur(2px);
+        animation: orbit 4s linear infinite;
+    }
+
+    .timer-header::before {
+        animation-delay: -2s;
+    }
+
+    @keyframes orbit {
+        0% { transform: rotate(0deg) translateX(30px) rotate(0deg); }
+        100% { transform: rotate(360deg) translateX(30px) rotate(-360deg); }
+    }
+
+    .gradient-text {
+        font-size: 1.6rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .timer-subtitle {
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .timer-display {
+        text-align: center;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .time {
+        font-size: 3.5rem;
+        margin-bottom: 0.8rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    /* Pulsing rings around the timer */
+    .time::before,
+    .time::after {
+        content: '';
+        position: absolute;
+        inset: -15px;
+        border: 2px solid rgba(109, 213, 237, 0.3);
+        border-radius: 50%;
+        animation: pulseRing 2s linear infinite;
+    }
+
+    .time::after {
+        animation-delay: 1s;
+    }
+
+    @keyframes pulseRing {
+        0% { transform: scale(0.8); opacity: 0; }
+        50% { opacity: 0.5; }
+        100% { transform: scale(1.2); opacity: 0; }
+    }
+
+    .timer-controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+    }
+
+    .timer-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.85rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    /* Button hover effect with cosmic particles */
+    .timer-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+    }
+
+    .timer-btn::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .timer-btn:hover::after {
+        opacity: 1;
+        animation: particleBurst 0.6s ease-out;
+    }
+
+    @keyframes particleBurst {
+        0% { transform: scale(0); opacity: 1; }
+        100% { transform: scale(1); opacity: 0; }
+    }
+
+    .timer-modes {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .mode-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Mode button active state with cosmic effect */
+    .mode-btn.active {
+        background: linear-gradient(45deg, rgba(109, 213, 237, 0.3), rgba(197, 126, 211, 0.3));
+        box-shadow: 
+            0 0 15px rgba(109, 213, 237, 0.3),
+            inset 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+
+    .mode-btn.active::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%);
+        animation: modeGlow 2s infinite;
+    }
+
+    @keyframes modeGlow {
+        0% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
+        100% { opacity: 0.5; transform: scale(1); }
+    }
+
+    .progress-bar-container {
+        width: 80%;
+        height: 5px;
+        margin: 1rem auto;
+        position: relative;
+    }
+
+    /* Progress bar shine effect */
+    .progress-bar-container::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, 
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+        animation: progressShine 2s infinite;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #6dd5ed, #C57ED3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Progress bar particles */
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 50%);
+        animation: progressParticles 2s infinite;
+    }
+
+    @keyframes progressParticles {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .timer-settings {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        z-index: 1; /* Ensure settings are above potential background effects */
+    }
+
+    /* Subtle background for settings */
+    .timer-settings::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(109, 213, 237, 0.03);
+        filter: blur(10px);
+        z-index: -1;
+        border-radius: 0 0 20px 20px; /* Match timer-box border radius */
+    }
+
+    .timer-settings h3 {
+        color: rgba(255, 255, 255, 0.9);
+        text-align: center;
+        margin-bottom: 1rem;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.6rem;
+        padding: 0.3rem 0;
+        border-bottom: 1px dotted rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .setting-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .setting-item:hover {
+        background: rgba(255, 255, 255, 0.02);
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        border-radius: 5px;
+    }
+
+    .setting-item label {
+        color: rgba(255, 255, 255, 0.8);
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        flex-grow: 1;
+        margin-right: 1rem;
+    }
+
+    .setting-item input[type="number"] {
+        width: 60px;
+        padding: 0.3rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        font-size: 0.85rem;
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+        -moz-appearance: textfield;
+        appearance: textfield;
+        transition: all 0.3s ease;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .setting-item input[type="number"]:focus {
+        outline: none;
+        border-color: rgba(109, 213, 237, 0.5);
+        box-shadow: 
+            0 0 10px rgba(109, 213, 237, 0.5),
+            inset 0 0 5px rgba(109, 213, 237, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Hide number input arrows */
+    .setting-item input[type="number"]::-webkit-outer-spin-button,
+    .setting-item input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .timer-stats {
+        padding-top: 1rem;
+        margin-top: 1rem;
+        display: flex;
+        justify-content: space-around;
+        position: relative;
+    }
+
+    /* Stats separator with cosmic effect */
+    .timer-stats::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #6dd5ed, transparent);
+    }
+
+    .stat-item {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .stat-item i {
+        font-size: 0.9rem;
+        animation: statPulse 2s infinite;
+    }
+
+    @keyframes statPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+        .timer-box {
+            padding: 1rem;
+            margin: 0.5rem;
+        }
+
+        .gradient-text {
+            font-size: 1.4rem;
+        }
+
+        .time {
+            font-size: 3rem;
+        }
+
+        .timer-controls {
+            flex-direction: column;
+        }
+
+        .timer-modes {
+            flex-direction: column;
+        }
+    }
+</style>
+
+{% block extra_js %}
+<script>
+    let timeLeft;
+    let timerId = null;
+    let completedCount = 0;
+    let totalFocus = 0;
+    let totalTime = 0; // Variable to store the initial time for percentage calculation
+    let currentMode = 'pomodoro'; // Track current mode
+
+    const timeDisplay = document.getElementById('time');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    const completedCountDisplay = document.getElementById('completedCount');
+    const totalFocusDisplay = document.getElementById('totalFocus');
+    const progressBar = document.getElementById('progressBar'); // Get progress bar element
+    const alarmSound = document.getElementById('alarmSound'); // Get audio element
+
+    // Get input fields
+    const pomodoroTimeInput = document.getElementById('pomodoroTimeInput');
+    const shortBreakTimeInput = document.getElementById('shortBreakTimeInput');
+    const longBreakTimeInput = document.getElementById('longBreakTimeInput');
+
+    function getTimeForMode(mode) {
+        let time;
+        switch (mode) {
+            case 'pomodoro':
+                time = parseInt(pomodoroTimeInput.value);
+                break;
+            case 'shortBreak':
+                time = parseInt(shortBreakTimeInput.value);
+                break;
+            case 'longBreak':
+                time = parseInt(longBreakTimeInput.value);
+                break;
+            default:
+                time = 25; // Default to Pomodoro if something goes wrong
+        }
+        // Ensure time is a positive number
+        return time > 0 ? time : 1; // Minimum 1 minute
+    }
+
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        // Update progress bar width
+        // Ensure totalTime is not zero to avoid division by zero
+        const progressPercentage = totalTime > 0 ? ((totalTime - timeLeft) / totalTime) * 100 : 0;
+        progressBar.style.width = `${progressPercentage}%`;
+    }
+
+    // Attempt to unlock audio on first user interaction (clicking start)
+    let audioUnlocked = false;
+
+    function startTimerLogic() {
+        if (timerId === null) {
+             // Store the initial time when the timer starts
+            totalTime = timeLeft;
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) { // Use <= 0 to handle potential floating point inaccuracies or delayed intervals
+                    clearInterval(timerId);
+                    timerId = null;
+
+                    // Check if audio is unlocked before playing
+                    if (audioUnlocked) {
+                         playAlarm();
+                    } else {
+                         console.warn('Audio not unlocked, cannot play alarm.');
+                    }
+
+                    // Check if the completed session was a Pomodoro
+                    if (currentMode === 'pomodoro') {
+                         // Use the value from the input field for calculation
+                        completedCount++;
+                        totalFocus += parseInt(pomodoroTimeInput.value) || 25; // Add actual time, default to 25 if input is invalid
+                        completedCountDisplay.textContent = completedCount;
+                        totalFocusDisplay.textContent = totalFocus;
+                    }
+                    // Reset progress bar after completion if needed, or handle mode change
+                     progressBar.style.width = '0%'; // Reset for next session
+                     // Optionally switch mode after completion, e.g., to short break
+                     // This would require selecting the next mode button and calling resetTimer()
+                }
+            }, 1000);
+            startBtn.style.display = 'none';
+            pauseBtn.style.display = 'inline-block';
+        }
+    }
+
+    function pauseTimer() {
+        clearInterval(timerId);
+        timerId = null;
+        startBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+    }
+
+    function resetTimer() {
+        clearInterval(timerId);
+        timerId = null;
+        // Get the time from the input field corresponding to the active mode
+        timeLeft = getTimeForMode(currentMode) * 60;
+        totalTime = timeLeft; // Reset total time as well
+        updateDisplay();
+        startBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+        progressBar.style.width = '0%'; // Reset progress bar on manual reset
+    }
+
+    function playAlarm() {
+        alarmSound.play();
+    }
+
+    modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all mode buttons
+            modeBtns.forEach(modeBtn => modeBtn.classList.remove('active'));
+            // Add active class to the clicked button
+            btn.classList.add('active');
+
+            // Update current mode
+            currentMode = btn.dataset.mode;
+
+            // Reset timer with the new time from the input field
+            resetTimer();
+        });
+    });
+
+    // Initial setup (default to Pomodoro time from input)
+    currentMode = document.querySelector('.mode-btn.active').dataset.mode || 'pomodoro';
+    timeLeft = getTimeForMode(currentMode) * 60;
+    totalTime = timeLeft; // Initialize totalTime on page load
+    updateDisplay();
+
+    // Add event listener to the test button
+  
+
+    // Add event listeners to input fields to update time if changed while a mode is active
+    pomodoroTimeInput.addEventListener('change', () => {
+        if (currentMode === 'pomodoro' && timerId === null) {
+            resetTimer();
+        }
+    });
+    shortBreakTimeInput.addEventListener('change', () => {
+         if (currentMode === 'shortBreak' && timerId === null) {
+            resetTimer();
+        }
+    });
+    longBreakTimeInput.addEventListener('change', () => {
+         if (currentMode === 'longBreak' && timerId === null) {
+            resetTimer();
+        }
+    });
+
+    // Update event listeners to use the new logic
+    // startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', pauseTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    // Attempt to unlock audio on first user interaction (clicking start)
+    startBtn.addEventListener('click', () => {
+        if (!audioUnlocked) {
+            // Attempt to play and immediately pause the audio to unlock it
+            alarmSound.play().then(() => {
+                alarmSound.pause();
+                alarmSound.currentTime = 0; // Reset to the beginning
+                audioUnlocked = true;
+                console.log('Audio unlocked.');
+                // Now start the actual timer
+                startTimerLogic();
+            }).catch(error => {
+                console.error('Audio unlock failed:', error);
+                // If unlock fails, still proceed with timer but without guaranteed sound
+                audioUnlocked = true; // Prevent repeated attempts
+                startTimerLogic();
+            });
+        } else {
+            // If audio is already unlocked, just start the timer
+            startTimerLogic();
+        }
+    });
+
+</script>
+{% endblock %}
+
+{% endblock content %} 

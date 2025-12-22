@@ -1,0 +1,744 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ZEN-ORBIT - To Do{% endblock %}
+
+{% block extra_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    /* Base font settings */
+    body {
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .todo-container {
+        max-width: 800px;
+        margin: 100px auto;
+        padding: 20px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .todo-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        padding: 40px;
+        text-align: center;
+        border: 1px solid rgba(79, 172, 254, 0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2),
+                    0 0 20px rgba(79, 172, 254, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .todo-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.1), transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .todo-card:hover::before {
+        opacity: 1;
+    }
+
+    .page-title {
+            text-align: center;
+        padding-top: 80px;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .page-title h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 42px;
+        color: #4facfe;
+        margin-bottom: 15px;
+        text-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        position: relative;
+        display: inline-block;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .page-title h1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #4facfe, transparent);
+        border-radius: 3px;
+        box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+    }
+
+    .page-title p {
+        font-family: 'Quicksand', sans-serif;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .task-section {
+        margin-top: 30px;
+        padding: 40px;
+        position: relative;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .task-input-container {
+            display: flex;
+        gap: 15px;
+        max-width: 600px;
+        margin: 0 auto 30px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 20px;
+        border-radius: 20px;
+        border: 2px solid rgba(79, 172, 254, 0.2);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1),
+                    0 0 15px rgba(79, 172, 254, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .task-input-container:focus-within {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.2),
+                    0 0 20px rgba(79, 172, 254, 0.1);
+        border-color: rgba(79, 172, 254, 0.4);
+    }
+
+    .task-input {
+        font-family: 'Space Grotesk', sans-serif;
+        flex: 1;
+        padding: 15px 25px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(79, 172, 254, 0.3);
+        border-radius: 15px;
+        color: white;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+    }
+
+    .task-input:focus {
+        outline: none;
+        border-color: rgba(79, 172, 254, 0.5);
+        box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+    }
+
+    .task-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    #addTask {
+        font-family: 'Orbitron', sans-serif;
+        padding: 15px 30px;
+        background: rgba(79, 172, 254, 0.2);
+            color: white;
+        border: 2px solid rgba(79, 172, 254, 0.3);
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        font-size: 16px;
+        min-width: 120px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    #addTask::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+            width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    #addTask:hover {
+        background: rgba(79, 172, 254, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3),
+                    0 0 15px rgba(79, 172, 254, 0.2);
+    }
+
+    #addTask:hover::before {
+        left: 100%;
+    }
+
+    .task-filters {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .filter-button {
+        font-family: 'Space Grotesk', sans-serif;
+        padding: 10px 25px;
+        background: rgba(79, 172, 254, 0.1);
+            color: white;
+        border: 2px solid rgba(79, 172, 254, 0.3);
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        min-width: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(79, 172, 254, 0.1);
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    .filter-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .filter-button:hover {
+        background: rgba(79, 172, 254, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
+    }
+
+    .filter-button:hover::before {
+        left: 100%;
+    }
+
+    .filter-button.active {
+        background: rgba(79, 172, 254, 0.3);
+        border-color: rgba(79, 172, 254, 0.5);
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+    }
+
+    .task-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .task-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .task-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    .task-list::-webkit-scrollbar-thumb {
+        background: rgba(197, 126, 211, 0.3);
+        border-radius: 4px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 25px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        border: 2px solid rgba(79, 172, 254, 0.1);
+        position: relative;
+            overflow: hidden;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 0 10px rgba(79, 172, 254, 0.1);
+        }
+
+    .task-item::before {
+        content: '';
+        position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        background: linear-gradient(45deg, transparent, rgba(79, 172, 254, 0.2), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .task-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px) translateY(-2px);
+        border-color: rgba(79, 172, 254, 0.3);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2),
+                    0 0 15px rgba(79, 172, 254, 0.2);
+    }
+
+    .task-item:hover::before {
+        transform: translateX(100%);
+    }
+
+    .task-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .task-checkbox {
+        width: 25px;
+        height: 25px;
+        border: 2px solid rgba(79, 172, 254, 0.3);
+            border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 0 10px rgba(79, 172, 254, 0.1);
+    }
+
+    .task-checkbox::before {
+        content: '';
+        position: absolute;
+            width: 100%;
+        height: 100%;
+        background: rgba(79, 172, 254, 0.2);
+        border-radius: 50%;
+        transform: scale(0);
+        transition: transform 0.3s ease;
+    }
+
+    .task-checkbox:hover::before {
+        transform: scale(1.2);
+    }
+
+    .task-checkbox.checked {
+        background: rgba(79, 172, 254, 0.3);
+        border-color: rgba(79, 172, 254, 0.5);
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+    }
+
+    .task-checkbox.checked::after {
+        content: '✓';
+        color: white;
+        font-size: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .task-text {
+        font-family: 'Quicksand', sans-serif;
+            color: white;
+        font-size: 16px;
+        position: relative;
+        z-index: 1;
+        letter-spacing: 0.3px;
+        font-weight: 500;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .task-item button {
+        background: rgba(79, 172, 254, 0.1);
+        border: 2px solid rgba(79, 172, 254, 0.2);
+        color: #4facfe;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 8px;
+        transition: all 0.3s ease;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+            display: flex;
+            align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(79, 172, 254, 0.1);
+    }
+
+    .task-item button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .task-item button:hover {
+            color: white;
+        transform: scale(1.1);
+        background: rgba(79, 172, 254, 0.3);
+        border-color: rgba(79, 172, 254, 0.5);
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+    }
+
+    .task-item button:hover::before {
+        left: 100%;
+    }
+
+    .task-item.completed {
+        opacity: 0.7;
+        box-shadow: 0 0 15px rgba(79, 172, 254, 0.2);
+        border-color: rgba(79, 172, 254, 0.3);
+    }
+
+    .task-item.completed .task-text {
+        text-decoration: line-through;
+    }
+
+    .empty-state {
+        font-family: 'Space Grotesk', sans-serif;
+        text-align: center;
+        padding: 40px;
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
+        font-size: 16px;
+        letter-spacing: 0.5px;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <h1>Task Master</h1>
+    <p>Organize your tasks with style and efficiency</p>
+</div>
+
+<div class="todo-container">
+    <div class="todo-card">
+        <div class="task-section">
+            <form id="taskForm" method="post" onsubmit="return false;">
+                {% csrf_token %}
+                <div class="task-input-container">
+                    <input type="text" id="taskInput" class="task-input" placeholder="What needs to be done?">
+                    <button type="button" id="addTask" class="btn btn-primary">Add Task</button>
+                </div>
+            </form>
+            <div class="task-filters">
+                <button class="filter-button active" data-filter="all">
+                    <i class="fas fa-list"></i> All Tasks
+                </button>
+                <button class="filter-button" data-filter="active">
+                    <i class="fas fa-clock"></i> Active
+                </button>
+                <button class="filter-button" data-filter="completed">
+                    <i class="fas fa-check-circle"></i> Completed
+                </button>
+            </div>
+            <ul class="task-list" id="taskList">
+                <!-- Tasks will be added here dynamically -->
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+    // Initialize tasks array with data from the server
+    let tasks = [];
+    let currentFilter = 'all';
+
+    // Load initial tasks
+    try {
+        const initialTasks = JSON.parse('{{ tasks_json|safe }}');
+        tasks = initialTasks;
+        console.log('Initial tasks loaded:', tasks);
+    } catch (error) {
+        console.error('Error loading initial tasks:', error);
+        console.log('Raw tasks_json:', '{{ tasks_json|safe }}');
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function addTask() {
+        const taskInput = document.getElementById('taskInput');
+        const taskText = taskInput.value.trim();
+        
+        if (taskText) {
+            const formData = new FormData();
+            formData.append('action', 'add');
+            formData.append('text', taskText);
+            formData.append('priority', 'normal');
+            
+            const csrfToken = getCookie('csrftoken');
+            console.log('Adding task:', taskText);
+            console.log('CSRF Token:', csrfToken);
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found in cookies');
+                alert('Security token missing. Please refresh the page and try again.');
+                return;
+            }
+            
+            fetch('{% url "Hello:todo" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(task => {
+                console.log('Task added successfully:', task);
+                tasks.push(task);
+                renderTasks();
+                taskInput.value = '';
+            })
+            .catch(error => {
+                console.error('Error adding task:', error);
+                alert('Failed to add task. Please try again.');
+            });
+        }
+    }
+
+    function toggleTask(taskId) {
+        console.log('Toggling task:', taskId);
+        
+        const formData = new FormData();
+        formData.append('action', 'complete');
+        formData.append('task_id', taskId);
+        
+        const csrfToken = getCookie('csrftoken');
+        if (!csrfToken) {
+            console.error('CSRF token not found in cookies');
+            alert('Security token missing. Please refresh the page and try again.');
+            return;
+        }
+        
+        fetch('{% url "Hello:todo" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                console.log('Task toggled successfully');
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    renderTasks();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling task:', error);
+            alert('Failed to update task. Please try again.');
+        });
+    }
+
+    function deleteTask(taskId) {
+        console.log('Deleting task:', taskId);
+        
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('task_id', taskId);
+        
+        const csrfToken = getCookie('csrftoken');
+        if (!csrfToken) {
+            console.error('CSRF token not found in cookies');
+            alert('Security token missing. Please refresh the page and try again.');
+            return;
+        }
+        
+        fetch('{% url "Hello:todo" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                console.log('Task deleted successfully');
+                tasks = tasks.filter(t => t.id !== taskId);
+                renderTasks();
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting task:', error);
+            alert('Failed to delete task. Please try again.');
+        });
+    }
+
+    function filterTasks(filter) {
+        console.log('Filtering tasks:', filter);
+        currentFilter = filter;
+        document.querySelectorAll('.filter-button').forEach(button => {
+            button.classList.remove('active');
+            if (button.dataset.filter === filter) {
+                button.classList.add('active');
+            }
+        });
+        renderTasks();
+    }
+
+    function renderTasks() {
+        console.log('Rendering tasks with filter:', currentFilter);
+        console.log('Current tasks:', tasks);
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+        
+        let filteredTasks = tasks;
+        if (currentFilter === 'active') {
+            filteredTasks = tasks.filter(t => !t.completed);
+        } else if (currentFilter === 'completed') {
+            filteredTasks = tasks.filter(t => t.completed);
+        }
+
+        if (filteredTasks.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = 'No tasks found';
+            taskList.appendChild(emptyState);
+            return;
+        }
+
+        filteredTasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = `task-item ${task.completed ? 'completed' : ''}`;
+            li.innerHTML = `
+                <div class="task-content">
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+                    <div class="task-text">${task.text}</div>
+                </div>
+                <div class="task-actions">
+                    <button onclick="deleteTask(${task.id})">🗑️</button>
+                </div>
+            `;
+            taskList.appendChild(li);
+        });
+    }
+
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, attaching event listeners...');
+        console.log('CSRF Token:', getCookie('csrftoken'));
+        
+        // Add Task button
+        const addTaskBtn = document.getElementById('addTask');
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                addTask();
+            });
+            console.log('Add Task button listener attached');
+        } else {
+            console.error('Add Task button not found');
+        }
+
+        // Task input Enter key
+        const taskInput = document.getElementById('taskInput');
+        if (taskInput) {
+            taskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTask();
+                }
+            });
+            console.log('Task input listener attached');
+        } else {
+            console.error('Task input not found');
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                filterTasks(button.dataset.filter);
+            });
+        });
+        console.log('Filter button listeners attached');
+
+        // Initial render
+        console.log('Initializing todo list...');
+        renderTasks();
+    });
+    </script>
+{% endblock %}

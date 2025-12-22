@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}ZEN-ORBIT - Bubble Pop{% endblock title %}
+
+{% block content %}
+<div class="bubble-container">
+    <div class="bubble-header">
+        <h1>✨ Bubble Pop ✨</h1>
+        <p>Click the bubbles to pop them and feel the joy!</p>
+    </div>
+    <button id="startButton" class="start-button">🔊 ENABLE SOUND</button>
+    <div id="bubbleContainer" class="bubble-grid"></div>
+</div>
+
+<style>
+.bubble-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.bubble-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.bubble-header h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6b46c1, #3182ce, #4ade80);
+    background-size: 300% 300%;
+    animation: rainbow 5s ease infinite;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.bubble-header p {
+    font-size: 1.2rem;
+    color: #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.start-button {
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin: 2rem auto;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: block;
+    min-width: 200px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 100;
+}
+
+.start-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.start-button:active {
+    transform: translateY(0);
+}
+
+.bubble-grid {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 300px);
+    overflow: hidden;
+    z-index: 1;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+    animation: float 3s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.bubble:hover {
+    transform: scale(1.1);
+}
+
+.bubble.pop {
+    animation: pop 0.5s ease-out forwards;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0);
+    }
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+@keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bubbleContainer = document.getElementById('bubbleContainer');
+    const startButton = document.getElementById('startButton');
+    let popSound;
+    let isInitialized = false;
+
+    // Initialize sound
+    function initializeAudio() {
+        try {
+            // Using a different sound URL that's more reliable
+            popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            popSound.volume = 0.3; // Lower volume for better experience
+            
+            // Create a user interaction promise
+            const playPromise = popSound.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    popSound.pause();
+                    popSound.currentTime = 0;
+                    isInitialized = true;
+                    startButton.textContent = 'Sound Enabled!';
+                    startButton.style.background = 'linear-gradient(45deg, #4ade80, #22c55e)';
+                }).catch(error => {
+                    console.error('Error playing sound:', error);
+                    startButton.textContent = 'Click Again to Enable Sound';
+                    startButton.style.background = 'linear-gradient(45deg, #f59e0b, #d97706)';
+                });
+            }
+        } catch (error) {
+            console.error('Error initializing audio:', error);
+            startButton.textContent = 'Error Loading Sound';
+            startButton.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+        }
+    }
+
+    // Start button click handler
+    startButton.addEventListener('click', function() {
+        if (!isInitialized || startButton.textContent === 'Click Again to Enable Sound') {
+            initializeAudio();
+        }
+    });
+    
+    // Create bubbles
+    function createBubble() {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        
+        // Random size between 30px and 100px
+        const size = Math.random() * 70 + 30;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        
+        // Random position
+        bubble.style.left = `${Math.random() * 100}%`;
+        bubble.style.top = `${Math.random() * 100}%`;
+        
+        // Random color
+        const hue = Math.random() * 360;
+        bubble.style.background = `radial-gradient(circle at 30% 30%, 
+            hsla(${hue}, 100%, 80%, 0.8), 
+            hsla(${hue}, 100%, 60%, 0.8))`;
+        
+        // Random animation duration
+        const duration = Math.random() * 3 + 2;
+        bubble.style.animationDuration = `${duration}s`;
+        
+        // Add click event
+        bubble.addEventListener('click', function() {
+            if (isInitialized && popSound) {
+                popSound.currentTime = 0;
+                const playPromise = popSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.error('Error playing sound:', error);
+                        startButton.textContent = 'Click Again to Enable Sound';
+                        startButton.style.background = 'linear-gradient(45deg, #f59e0b, #d97706)';
+                    });
+                }
+            }
+            
+            // Add pop animation
+            bubble.classList.add('pop');
+            
+            // Remove bubble after animation
+            setTimeout(() => {
+                bubble.remove();
+                createBubble(); // Create a new bubble
+            }, 500);
+        });
+        
+        bubbleContainer.appendChild(bubble);
+    }
+    
+    // Create initial bubbles
+    for (let i = 0; i < 15; i++) {
+        createBubble();
+    }
+    
+    // Create new bubbles when old ones are popped
+    bubbleContainer.addEventListener('click', function(e) {
+        if (e.target === bubbleContainer) {
+            createBubble();
+        }
+    });
+});
+</script>
+{% endblock content %} 

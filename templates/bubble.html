@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubble Pop - Relaxation Game</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap");
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+        body {
+            width: 100%;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at bottom, #0C1116 0%, #090a0f 100%);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .navbar {
+            height: 60px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            z-index: 1000;
+            transition: background-color 0.5s ease;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-size: 18px;
+        }
+
+        .navbar-nav {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-nav li a {
+            color: white !important;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .score {
+            color: white;
+            font-size: 24px;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+            color: white;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-over h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #C57ED3;
+        }
+
+        .game-over p {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: #C57ED3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .restart-btn:hover {
+            background: #a05ba3;
+        }
+
+        .high-score {
+            color: #C57ED3;
+            font-weight: bold;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2));
+            cursor: pointer;
+            transition: transform 0.2s;
+            animation: float 4s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .pop {
+            animation: pop 0.5s ease-out forwards;
+        }
+
+        @keyframes pop {
+            0% { 
+                transform: scale(1); 
+                opacity: 1;
+                filter: brightness(1);
+            }
+            50% { 
+                transform: scale(1.2); 
+                opacity: 0.8;
+                filter: brightness(1.5);
+            }
+            100% { 
+                transform: scale(0); 
+                opacity: 0;
+                filter: brightness(2);
+            }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle 0.5s ease-out forwards;
+        }
+
+        @keyframes particle {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .ripple {
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: ripple 0.5s ease-out forwards;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            top: 0;
+            left: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle 3s infinite ease-in-out alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.3); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-fixed-top">
+        <a class="navbar-brand" href="#">ZEN-ORBIT</a>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/todo">To do list</a></li>
+            <li><a href="/pomo">Pomodoro</a></li>
+            <li><a href="/notes">Notes</a></li>
+            <li><a href="/relax">Relax</a></li>
+            <li><a href="/habit">Habit</a></li>
+        </ul>
+    </nav>
+
+    <div class="stars" id="star-container"></div>
+    <div class="stats-container">
+        <div class="stat-box">Bubbles Popped: <span id="score">0</span></div>
+        <div class="stat-box">Time Left: <span id="timer">60</span>s</div>
+        <div class="stat-box">High Score: <span id="highScore" class="high-score">0</span></div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>Game Over!</h2>
+        <p>You popped <span id="finalScore">0</span> bubbles!</p>
+        <p>High Score: <span id="finalHighScore" class="high-score">0</span></p>
+        <button class="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        let startTime = Date.now();
+        let timeLeft = 60; // 60 seconds game time
+        let timerInterval;
+        let highScore = localStorage.getItem('bubbleHighScore') || 0;
+        let gameActive = true;
+
+        // Initialize high score display
+        document.getElementById('highScore').textContent = highScore;
+
+        function updateTimer() {
+            if (!gameActive) return;
+            
+            timeLeft--;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            const currentScore = parseInt(document.getElementById('score').textContent);
+            document.getElementById('finalScore').textContent = currentScore;
+            
+            // Update high score if current score is higher
+            if (currentScore > highScore) {
+                highScore = currentScore;
+                localStorage.setItem('bubbleHighScore', highScore);
+                document.getElementById('finalHighScore').textContent = highScore;
+            } else {
+                document.getElementById('finalHighScore').textContent = highScore;
+            }
+            
+            // Show game over screen
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function restartGame() {
+            // Reset game state
+            timeLeft = 60;
+            gameActive = true;
+            document.getElementById('score').textContent = '0';
+            document.getElementById('timer').textContent = '60';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Clear existing bubbles
+            const bubbles = document.querySelectorAll('.bubble');
+            bubbles.forEach(bubble => bubble.remove());
+            
+            // Create new bubbles
+            for (let i = 0; i < 10; i++) {
+                createBubble();
+            }
+            
+            // Restart timer
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function createStars() {
+            const numStars = 200;
+            const starContainer = document.getElementById("star-container");
+            for (let i = 0; i < numStars; i++) {
+                let star = document.createElement("span");
+                star.classList.add("star");
+                star.style.left = `${Math.random() * window.innerWidth}px`;
+                star.style.top = `${Math.random() * window.innerHeight}px`;
+                star.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                starContainer.appendChild(star);
+            }
+        }
+
+        function createBubble() {
+            if (!gameActive) return;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const size = Math.random() * 70 + 30;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            
+            bubble.style.left = `${Math.random() * (window.innerWidth - size)}px`;
+            bubble.style.top = `${Math.random() * (window.innerHeight - size)}px`;
+            
+            const hue = Math.random() * 360;
+            bubble.style.backgroundColor = `hsla(${hue}, 70%, 50%, 0.6)`;
+            
+            bubble.style.animationDuration = `${Math.random() * 2 + 3}s`;
+            
+            document.body.appendChild(bubble);
+            
+            bubble.addEventListener('click', (e) => {
+                if (!gameActive) return;
+                
+                // Add pop animation
+                bubble.classList.add('pop');
+                
+                // Create ripple effect
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.width = `${size}px`;
+                ripple.style.height = `${size}px`;
+                ripple.style.left = bubble.style.left;
+                ripple.style.top = bubble.style.top;
+                document.body.appendChild(ripple);
+                
+                // Create particles
+                const numParticles = 12;
+                for (let i = 0; i < numParticles; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = bubble.style.left;
+                    particle.style.top = bubble.style.top;
+                    
+                    // Random direction and distance for particles
+                    const angle = (i / numParticles) * Math.PI * 2;
+                    const distance = size / 2;
+                    const tx = Math.cos(angle) * distance;
+                    const ty = Math.sin(angle) * distance;
+                    
+                    particle.style.setProperty('--tx', `${tx}px`);
+                    particle.style.setProperty('--ty', `${ty}px`);
+                    
+                    document.body.appendChild(particle);
+                }
+                
+                // Update score
+                const score = document.getElementById('score');
+                score.textContent = parseInt(score.textContent) + 1;
+                
+                // Remove elements after animation
+                setTimeout(() => {
+                    bubble.remove();
+                    ripple.remove();
+                    document.querySelectorAll('.particle').forEach(p => p.remove());
+                }, 500);
+            });
+        }
+
+        // Start the game
+        timerInterval = setInterval(updateTimer, 1000);
+        
+        // Create initial bubbles
+        for (let i = 0; i < 10; i++) {
+            createBubble();
+        }
+
+        // Create new bubbles periodically
+        setInterval(createBubble, 2000);
+
+        // Create stars
+        createStars();
+    </script>
+</body>
+</html> 

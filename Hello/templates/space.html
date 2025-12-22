@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap");
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+        
+        body, html {
+            width: 100%;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        .navbar {
+            height: 60px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            z-index: 1000;
+            transition: background-color 0.5s ease;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-size: 18px;
+            text-decoration: none;
+        }
+
+        .navbar-nav {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .navbar-nav li a {
+            color: white !important;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .spaceship {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00ff88 0%, #00a1ff 100%);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            filter: drop-shadow(0 0 10px #00ff88);
+            transition: transform 0.1s;
+        }
+
+        .laser {
+            position: absolute;
+            width: 4px;
+            height: 20px;
+            background: #ff3366;
+            border-radius: 2px;
+            filter: drop-shadow(0 0 5px #ff3366);
+        }
+
+        .asteroid {
+            position: absolute;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            transform-origin: center;
+            animation: float 4s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(197, 126, 211, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .asteroid:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .asteroid.pop {
+            animation: pop 0.3s ease-out forwards;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes pop {
+            0% { 
+                transform: scale(1); 
+                opacity: 1;
+                filter: brightness(1);
+            }
+            50% { 
+                transform: scale(1.2); 
+                opacity: 0.8;
+                filter: brightness(1.5);
+            }
+            100% { 
+                transform: scale(0); 
+                opacity: 0;
+                filter: brightness(2);
+            }
+        }
+
+        .stats-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            z-index: 1000;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            font-size: 20px;
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+
+        .game-over h2 {
+            color: #ff3366;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .game-over button {
+            background: #ff3366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .game-over button:hover {
+            background: #ff1f4f;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a class="navbar-brand" href="#">ZEN-ORBIT</a>
+        <ul class="navbar-nav">
+            <li><a href="/">Home</a></li>
+            <li><a href="/todo">To do list</a></li>
+            <li><a href="/pomo">Pomodoro</a></li>
+            <li><a href="/notes">Notes</a></li>
+            <li><a href="/relax">Relax</a></li>
+            <li><a href="/habit">Habit</a></li>
+        </ul>
+    </nav>
+
+    <div class="game-container">
+        <div class="stats-container">
+            <div class="stat-box">Score: <span id="score">0</span></div>
+            <div class="stat-box">High Score: <span id="highScore">0</span></div>
+        </div>
+        <div class="spaceship"></div>
+    </div>
+
+    <div class="game-over">
+        <h2>Game Over!</h2>
+        <p>Score: <span id="finalScore">0</span></p>
+        <p>High Score: <span id="finalHighScore">0</span></p>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        const gameContainer = document.querySelector('.game-container');
+        const spaceship = document.querySelector('.spaceship');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        let score = 0;
+        let highScore = localStorage.getItem('spaceHighScore') || 0;
+        let gameActive = true;
+
+        // Update high score display
+        highScoreElement.textContent = highScore;
+
+        // Create stars background
+        function createStars() {
+            const numStars = 200;
+            for (let i = 0; i < numStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.opacity = Math.random();
+                star.style.animation = `twinkle ${Math.random() * 2 + 1}s infinite`;
+                gameContainer.appendChild(star);
+            }
+        }
+        createStars();
+
+        // Spaceship movement
+        document.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            const x = e.clientX;
+            spaceship.style.left = `${x}px`;
+        });
+
+        // Shooting
+        document.addEventListener('click', (e) => {
+            if (!gameActive) return;
+            createLaser();
+        });
+
+        function createLaser() {
+            const laser = document.createElement('div');
+            laser.className = 'laser';
+            const spaceshipRect = spaceship.getBoundingClientRect();
+            laser.style.left = `${spaceshipRect.left + spaceshipRect.width / 2 - 2}px`;
+            laser.style.bottom = '110px';
+            gameContainer.appendChild(laser);
+
+            const animation = laser.animate([
+                { bottom: '110px' },
+                { bottom: '100vh' }
+            ], {
+                duration: 1000,
+                easing: 'linear'
+            });
+
+            animation.onfinish = () => laser.remove();
+        }
+
+        // Create asteroids
+        function createAsteroid() {
+            if (!gameActive) return;
+            
+            const phrases = [
+                "Meeting that could've been an email! 😤",
+                "My coffee maker is my best friend ☕",
+                "404: Weekend not found 😅",
+                "Printer: *exists* Me: 🤬",
+                "Reply-all apocalypse! 📧",
+                "Another Monday... 😫",
+                "Where's my stapler? 📎",
+                "ASAP = Always Sleep At Project 😴",
+                "Deadline? More like suggested timeline 🙄",
+                "My code works! Why? No idea! 🤔",
+                "Ctrl+Z my life choices 🔄",
+                "Meeting in 5... *panic intensifies* 😰",
+                "Who took my lunch?! 🥪",
+                "Excel has stopped responding 💀",
+                "Is this meeting really necessary? 🤦",
+                "*Pretends to work* 👨‍💻",
+                "Loading motivation.exe... 🔄",
+                "WiFi down = Coffee break ☕",
+                "Reply all: Please remove me 🙏",
+                "It's not a bug, it's a feature! 🐛"
+            ];
+
+            const asteroid = document.createElement('div');
+            asteroid.className = 'asteroid';
+            asteroid.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+            
+            // Random size adjustment based on text length
+            const baseSize = Math.random() * 0.4 + 0.8; // 0.8 to 1.2
+            asteroid.style.transform = `scale(${baseSize})`;
+            
+            // Random colors
+            const hue = Math.random() * 360;
+            asteroid.style.borderLeft = `4px solid hsl(${hue}, 70%, 60%)`;
+            
+            asteroid.style.left = `${Math.random() * (window.innerWidth - 200)}px`;
+            asteroid.style.top = '-100px';
+            gameContainer.appendChild(asteroid);
+
+            const speed = 2000 + Math.random() * 2000; // Random speed between 2-4 seconds
+            const animation = asteroid.animate([
+                { top: '-100px' },
+                { top: '100vh' }
+            ], {
+                duration: speed,
+                easing: 'linear'
+            });
+
+            animation.onfinish = () => {
+                if (asteroid.parentElement) {
+                    asteroid.remove();
+                }
+            };
+
+            // Check for collisions
+            const collisionCheck = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(collisionCheck);
+                    return;
+                }
+
+                const asteroidRect = asteroid.getBoundingClientRect();
+                const spaceshipRect = spaceship.getBoundingClientRect();
+
+                // Check collision with spaceship
+                if (isColliding(asteroidRect, spaceshipRect)) {
+                    gameOver();
+                    clearInterval(collisionCheck);
+                    return;
+                }
+
+                // Check collision with lasers
+                document.querySelectorAll('.laser').forEach(laser => {
+                    const laserRect = laser.getBoundingClientRect();
+                    if (isColliding(asteroidRect, laserRect)) {
+                        // Add pop animation
+                        asteroid.classList.add('pop');
+                        setTimeout(() => {
+                            asteroid.remove();
+                        }, 300);
+                        laser.remove();
+                        clearInterval(collisionCheck);
+                        updateScore();
+                    }
+                });
+            }, 100);
+        }
+
+        function isColliding(rect1, rect2) {
+            return !(rect1.right < rect2.left || 
+                    rect1.left > rect2.right || 
+                    rect1.bottom < rect2.top || 
+                    rect1.top > rect2.bottom);
+        }
+
+        function updateScore() {
+            score += 10;
+            scoreElement.textContent = score;
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = highScore;
+                localStorage.setItem('spaceHighScore', highScore);
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            document.querySelector('.game-over').style.display = 'block';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalHighScore').textContent = highScore;
+        }
+
+        function restartGame() {
+            gameActive = true;
+            score = 0;
+            scoreElement.textContent = '0';
+            document.querySelector('.game-over').style.display = 'none';
+            document.querySelectorAll('.asteroid').forEach(a => a.remove());
+            document.querySelectorAll('.laser').forEach(l => l.remove());
+        }
+
+        // Start spawning asteroids
+        setInterval(createAsteroid, 2000);
+    </script>
+</body>
+</html> 

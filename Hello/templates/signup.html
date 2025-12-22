@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+
+{% block title %}ZEN-ORBIT - Sign Up{% endblock title %}
+
+{% block extra_css %}
+<style>
+.signup-container {
+    max-width: 500px;
+    margin: 100px auto;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(127, 90, 240, 0.2);
+    box-shadow: 0 0 20px rgba(127, 90, 240, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.signup-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center,
+        rgba(127, 90, 240, 0.1) 0%,
+        rgba(109, 213, 237, 0.1) 25%,
+        transparent 50%);
+    animation: nebulaPulse 8s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes nebulaPulse {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.2) rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.page-title h1 {
+    font-size: 36px;
+    color: #7f5af0;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(127, 90, 240, 0.5);
+}
+
+.page-title p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(127, 90, 240, 0.2);
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: rgba(127, 90, 240, 0.5);
+    box-shadow: 0 0 20px rgba(127, 90, 240, 0.3);
+}
+
+.form-group i {
+    position: absolute;
+    right: 12px;
+    top: 40px;
+    color: rgba(127, 90, 240, 0.5);
+}
+
+.password-requirements {
+    margin-top: 5px;
+    padding: 10px;
+    background: rgba(127, 90, 240, 0.1);
+    border-radius: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.password-requirements ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 5px 0 0 0;
+}
+
+.password-requirements li {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.password-requirements li i {
+    position: static;
+    margin-right: 8px;
+    font-size: 12px;
+}
+
+.password-requirements li.valid {
+    color: #4CAF50;
+}
+
+.password-requirements li.invalid {
+    color: #f44336;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(45deg, #7f5af0, #6246ea);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(127, 90, 240, 0.3);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center,
+        rgba(255, 255, 255, 0.3) 0%,
+        transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-primary:hover::before {
+    opacity: 1;
+    animation: cosmicPulse 2s ease-in-out infinite;
+}
+
+@keyframes cosmicPulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #7f5af0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.login-link a:hover {
+    text-shadow: 0 0 10px rgba(127, 90, 240, 0.5);
+}
+
+.alert {
+    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: 10px;
+    color: white;
+    border: 2px solid;
+    animation: alertSlide 0.5s ease-out;
+}
+
+.alert-error {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.alert-success {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+@keyframes alertSlide {
+    0% { 
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="signup-container">
+    <div class="page-title">
+        <h1>Create Account</h1>
+        <p>Join ZEN-ORBIT and start your journey</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'Hello:signup' %}" id="signup-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required minlength="3" pattern="[a-zA-Z0-9_]+">
+            <i class="fas fa-user"></i>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+            <i class="fas fa-envelope"></i>
+        </div>
+        <div class="form-group">
+            <label for="password1">Password</label>
+            <input type="password" class="form-control" id="password1" name="password1" required minlength="8">
+            <i class="fas fa-lock"></i>
+            <div class="password-requirements">
+                <p>Password must contain:</p>
+                <ul>
+                    <li id="length"><i class="fas fa-times"></i> At least 8 characters</li>
+                    <li id="uppercase"><i class="fas fa-times"></i> One uppercase letter</li>
+                    <li id="lowercase"><i class="fas fa-times"></i> One lowercase letter</li>
+                    <li id="number"><i class="fas fa-times"></i> One number</li>
+                    <li id="special"><i class="fas fa-times"></i> One special character</li>
+                </ul>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="password2">Confirm Password</label>
+            <input type="password" class="form-control" id="password2" name="password2" required>
+            <i class="fas fa-lock"></i>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Account</button>
+    </form>
+
+    <div class="login-link">
+        Already have an account? <a href="{% url 'Hello:login' %}">Login here</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('password1');
+    const password2 = document.getElementById('password2');
+    const requirements = {
+        length: document.getElementById('length'),
+        uppercase: document.getElementById('uppercase'),
+        lowercase: document.getElementById('lowercase'),
+        number: document.getElementById('number'),
+        special: document.getElementById('special')
+    };
+
+    function validatePassword() {
+        const password = password1.value;
+        
+        // Check length
+        if (password.length >= 8) {
+            requirements.length.classList.add('valid');
+            requirements.length.querySelector('i').className = 'fas fa-check';
+        } else {
+            requirements.length.classList.remove('valid');
+            requirements.length.querySelector('i').className = 'fas fa-times';
+        }
+
+        // Check uppercase
+        if (/[A-Z]/.test(password)) {
+            requirements.uppercase.classList.add('valid');
+            requirements.uppercase.querySelector('i').className = 'fas fa-check';
+        } else {
+            requirements.uppercase.classList.remove('valid');
+            requirements.uppercase.querySelector('i').className = 'fas fa-times';
+        }
+
+        // Check lowercase
+        if (/[a-z]/.test(password)) {
+            requirements.lowercase.classList.add('valid');
+            requirements.lowercase.querySelector('i').className = 'fas fa-check';
+        } else {
+            requirements.lowercase.classList.remove('valid');
+            requirements.lowercase.querySelector('i').className = 'fas fa-times';
+        }
+
+        // Check number
+        if (/[0-9]/.test(password)) {
+            requirements.number.classList.add('valid');
+            requirements.number.querySelector('i').className = 'fas fa-check';
+        } else {
+            requirements.number.classList.remove('valid');
+            requirements.number.querySelector('i').className = 'fas fa-times';
+        }
+
+        // Check special character
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            requirements.special.classList.add('valid');
+            requirements.special.querySelector('i').className = 'fas fa-check';
+        } else {
+            requirements.special.classList.remove('valid');
+            requirements.special.querySelector('i').className = 'fas fa-times';
+        }
+    }
+
+    password1.addEventListener('input', validatePassword);
+
+    document.getElementById('signup-form').addEventListener('submit', function(e) {
+        if (password1.value !== password2.value) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+        }
+    });
+});
+</script>
+{% endblock content %} 

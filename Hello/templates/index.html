@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ZENORBIT - Your All-in-One Productivity Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Ensure body has correct background */
+    body {
+        background: #090a0f;
+    }
+
+    /* Main content adjustments for padding after fixed header */
+    .main-content {
+        padding: 3rem 1.5rem; /* Reduced padding */
+        position: relative;
+        z-index: 2; /* Ensure main content is above background */
+        max-width: 1200px; /* Reduced max-width */
+        margin: 0 auto;
+        text-align: center; /* Center content */
+        padding-top: 70px; /* Adjust padding to clear the fixed header */
+    }
+
+    /* --- Background Styles --- */
+    #horizon {
+        position: fixed; /* Use fixed positioning for background elements */
+        width: 160%;
+        height: 70%;
+        border-radius: 100% / 100%;
+        background: #038bff;
+        filter: blur(30px);
+        -webkit-filter: blur(30px);
+        left: 50%;
+        bottom: -20%;
+        margin-left: -80%;
+        z-index: 0;
+    }
+
+    #horizon::before {
+        content: " ";
+        position: absolute;
+        width: 81.25%;
+        height: 70%;
+        border-radius: 100% / 100%;
+        background: #51AFFF;
+        filter: blur(30px);
+        -webkit-filter: blur(30px);
+        opacity: 0.6;
+        margin-left: 9.375%;
+    }
+
+    #horizon::after {
+        content: " ";
+        position: absolute;
+        width: 32%;
+        height: 20%;
+        border-radius: 650px / 350px;
+        background: #B0DAFF;
+        filter: blur(30px);
+        -webkit-filter: blur(30px);
+        opacity: 0.5;
+        margin-left: 34%;
+    }
+
+    #horizon .glow {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 100% / 100%;
+        background: #215496;
+        filter: blur(200px);
+        -webkit-filter: blur(200px);
+        opacity: 0.7;
+        top: -10%;
+    }
+
+    #earth {
+        position: fixed; /* Use fixed positioning for background elements */
+        width: 200%;
+        height: 100%;
+        background: black;
+        border-radius: 100% / 100%;
+        left: 50%;
+        bottom: -50%;
+        margin-left: -100%;
+        z-index: 1;
+    }
+
+    #earth::before {
+        content: " ";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 100% / 100%;
+        box-shadow: inset 0px 0px 62px 20px rgba(60, 105, 138, 0.85);
+    }
+    /* --- End Background Styles --- */
+
+    /* Main Page Title */
+    .page-title {
+        font-family: 'Inter', sans-serif; /* Font from image */
+        font-size: 3rem; /* Reduced size */
+        color: #fff;
+        margin-bottom: 2rem; /* Reduced space below title */
+        text-shadow: 0 0 10px rgba(127, 90, 240, 0.4), 0 0 20px rgba(127, 90, 240, 0.2); /* Subtle glow */
+        letter-spacing: 5px; /* Adjusted letter spacing for better look */
+        font-weight: 700;
+        text-align: center; /* Ensure title is centered */
+        margin-top: 1.5rem; /* Reduced margin above title */
+        animation: subtle-glow 3s infinite alternate ease-in-out; /* Subtle glow animation */
+    }
+
+     @keyframes subtle-glow {
+        0% { text-shadow: 0 0 10px rgba(127, 90, 240, 0.4), 0 0 20px rgba(127, 90, 240, 0.2); }
+        100% { text-shadow: 0 0 15px rgba(127, 90, 240, 0.6), 0 0 25px rgba(127, 90, 240, 0.3); }
+    }
+
+    .features-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Further adjusted minmax */
+        gap: 1.5rem; /* Further reduced gap */
+        max-width: 1000px; /* Further reduced max-width */
+        margin: 3rem auto; /* Adjusted margin */
+        padding: 0 1rem; /* Adjusted padding */
+        z-index: 2; /* Ensure cards are above background */
+        position: relative; /* Needed for z-index */
+    }
+
+    .feature-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 15px; /* Slightly smaller border-radius */
+        padding: 1.5rem; /* Further reduced padding */
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(127, 90, 240, 0.2); /* More subtle border */
+        box-shadow: 0 5px 20px 0 rgba(31, 38, 135, 0.3); /* More subtle shadow */
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between; /* Space out content */
+        min-height: 250px; /* Adjusted min-height */
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent, rgba(127, 90, 240, 0.05), transparent); /* More subtle gradient */
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px); /* Reduced lift */
+        border-color: rgba(127, 90, 240, 0.4); /* More subtle hover border */
+        box-shadow: 0 10px 30px rgba(127, 90, 240, 0.2), /* Adjusted shadow on hover */
+                    0 0 15px rgba(127, 90, 240, 0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .feature-card:hover::before {
+        transform: translateX(100%);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem; /* Further reduced icon size */
+        margin-bottom: 0.8rem; /* Further reduced margin */
+        color: #7f5af0; /* Purple accent */
+        text-shadow: 0 0 15px rgba(127, 90, 240, 0.3); /* Further reduced icon glow */
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.05); /* Reduced scale on hover */
+    }
+
+    .feature-title {
+        font-family: 'Inter', sans-serif; /* Consistent font with title */
+        color: #fff;
+        font-size: 1.4rem; /* Further reduced font size */
+        margin-bottom: 0.6rem; /* Further reduced margin */
+        text-shadow: 0 0 7px rgba(127, 90, 240, 0.15); /* Further reduced title glow */
+    }
+
+    .feature-description {
+        font-family: 'Nunito', sans-serif; /* Different font for description */
+        color: rgba(255, 255, 255, 0.8); /* Adjusted color opacity */
+        margin-bottom: 1rem; /* Further reduced margin */
+        line-height: 1.5; /* Adjusted line height */
+        font-size: 0.9rem; /* Further reduced font size */
+    }
+
+    .feature-link {
+        display: inline-block;
+        padding: 0.5rem 1rem; /* Further reduced padding */
+        border-radius: 20px; /* Adjusted border-radius */
+        background: linear-gradient(45deg, #7f5af0, #6246ea); /* Purple gradient */
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: auto; /* Push button to bottom */
+        font-size: 0.8rem; /* Further reduced font size */
+    }
+
+    .feature-link:hover {
+        transform: translateY(-2px); /* Reduced lift */
+        box-shadow: 0 5px 20px rgba(127, 90, 240, 0.3); /* Adjusted shadow on hover */
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 1.5rem 1rem; /* Reduced padding */
+            padding-top: 60px; /* Adjust for smaller header */
+        }
+
+        .page-title {
+            font-size: 2rem; /* Further reduced font size */
+        }
+
+        .features-container {
+            grid-template-columns: 1fr;
+            padding: 0 1rem; /* Adjusted padding */
+            margin-top: 1.5rem; /* Adjusted margin */
+        }
+
+        .feature-card {
+            min-height: 200px; /* Further adjusted min-height */
+            padding: 1.2rem; /* Further reduced padding */
+        }
+
+        .feature-title {
+            font-size: 1.3rem; /* Further reduced font size */
+        }
+
+        .feature-description {
+            font-size: 0.8rem; /* Further reduced font size */
+        }
+
+        .feature-icon {
+            font-size: 2rem; /* Further reduced icon size */
+        }
+
+        .feature-link {
+            padding: 0.4rem 0.8rem; /* Further reduced padding */
+            font-size: 0.7rem; /* Further reduced font size */
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1200px) {
+        .features-container {
+            grid-template-columns: repeat(2, 1fr); /* Two columns for medium screens */
+        }
+    }
+
+    @media (min-width: 1201px) {
+        .features-container {
+            grid-template-columns: repeat(3, 1fr); /* Three columns for large screens */
+        }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="page-title">ZENORBIT</h1>
+    <div class="features-container">
+        <a href="{% url 'Hello:todo' %}" class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h3 class="feature-title">To-Do List</h3>
+            <p class="feature-description">Organize your tasks and boost your productivity. Never miss a deadline with our smart task management system.</p>
+            <span class="feature-link">View Tasks</span>
+        </a>
+        <a href="{% url 'Hello:pomodoro' %}" class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">Productivity Tools</h3>
+            <p class="feature-description">Boost your productivity with our integrated tools. Stay focused and accomplish more with our Pomodoro timer.</p>
+            <span class="feature-link">Start Focus</span>
+        </a>
+
+        <a href="{% url 'Hello:notes' %}" class="feature-card">
+            <div class="feature-icon">📝</div>
+            <h3 class="feature-title">Smart Notes</h3>
+            <p class="feature-description">Organize your thoughts and ideas with our intelligent note-taking system. Capture, categorize, and find your notes instantly.</p>
+            <span class="feature-link">Take Notes</span>
+        </a>
+
+        <a href="{% url 'Hello:habit' %}" class="feature-card">
+            <div class="feature-icon">✨</div>
+            <h3 class="feature-title">Habit Tracker</h3>
+            <p class="feature-description">Build positive habits and track your progress. Transform your daily routines into lasting lifestyle changes.</p>
+            <span class="feature-link">Track Habits</span>
+        </a>
+
+        <a href="{% url 'Hello:relax' %}" class="feature-card">
+            <div class="feature-icon">🌙</div>
+            <h3 class="feature-title">Relax Mode</h3>
+            <p class="feature-description">Take a break and relax with our soothing relaxation features. Perfect for stress relief and mental wellness.</p>
+            <span class="feature-link">Relax Now</span>
+        </a>
+    </div>
+</div>
+
+<div id="horizon">
+    <div class="glow"></div>
+</div>
+<div id="earth"></div>
+{% endblock %}
+

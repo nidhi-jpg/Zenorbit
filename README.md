@@ -41,6 +41,16 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Render Deployment
+
+This repository includes `render.yaml`, so it can be deployed as a Render Blueprint.
+
+- Build command: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`
+- Start command: `gunicorn myauthproject.wsgi:application`
+- Python version: `python-3.11.9`
+
+Required environment variables are defined in `render.yaml`. Render will generate `SECRET_KEY`; `DEBUG` should stay `False` in production.
+
 ## Project Structure
 
 - `Hello/` - Main application

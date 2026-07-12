@@ -494,6 +494,15 @@
         console.log('Raw tasks_json:', '{{ tasks_json|escapejs }}');
     }
 
+    function getCSRFToken() {
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+
+        return getCookie('csrftoken');
+    }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -519,7 +528,7 @@
             formData.append('text', taskText);
             formData.append('priority', 'normal');
             
-            const csrfToken = getCookie('csrftoken');
+            const csrfToken = getCSRFToken();
             console.log('Adding task:', taskText);
             console.log('CSRF Token:', csrfToken);
             
@@ -565,7 +574,7 @@
         formData.append('action', 'complete');
         formData.append('task_id', taskId);
         
-        const csrfToken = getCookie('csrftoken');
+        const csrfToken = getCSRFToken();
         if (!csrfToken) {
             console.error('CSRF token not found in cookies');
             alert('Security token missing. Please refresh the page and try again.');
@@ -611,7 +620,7 @@
         formData.append('action', 'delete');
         formData.append('task_id', taskId);
         
-        const csrfToken = getCookie('csrftoken');
+        const csrfToken = getCSRFToken();
         if (!csrfToken) {
             console.error('CSRF token not found in cookies');
             alert('Security token missing. Please refresh the page and try again.');
@@ -700,7 +709,7 @@
     // Wait for DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOM loaded, attaching event listeners...');
-        console.log('CSRF Token:', getCookie('csrftoken'));
+        console.log('CSRF Token:', getCSRFToken());
         
         // Add Task button
         const addTaskBtn = document.getElementById('addTask');

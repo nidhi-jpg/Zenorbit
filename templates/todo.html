@@ -260,6 +260,7 @@
         </div>
         
         <div class="task-section">
+            {% csrf_token %}
             <div class="error-message" id="errorMessage"></div>
             <div class="success-message" id="successMessage"></div>
             <div class="task-input-container">
@@ -295,8 +296,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const successMessage = document.getElementById('successMessage');
     const emptyState = document.getElementById('emptyState');
 
-    // Get CSRF token
+    // Get CSRF token. Production sets the CSRF cookie as HttpOnly, so prefer
+    // the hidden input rendered by Django instead of reading document.cookie.
     function getCSRFToken() {
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+
         const name = 'csrftoken';
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {

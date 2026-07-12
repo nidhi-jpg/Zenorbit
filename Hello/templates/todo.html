@@ -478,7 +478,7 @@
 </div>
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
     <script>
     // Initialize tasks array with data from the server
     let tasks = [];
@@ -486,12 +486,12 @@
 
     // Load initial tasks
     try {
-        const initialTasks = JSON.parse('{{ tasks_json|safe }}');
+        const initialTasks = JSON.parse('{{ tasks_json|escapejs }}');
         tasks = initialTasks;
         console.log('Initial tasks loaded:', tasks);
     } catch (error) {
         console.error('Error loading initial tasks:', error);
-        console.log('Raw tasks_json:', '{{ tasks_json|safe }}');
+        console.log('Raw tasks_json:', '{{ tasks_json|escapejs }}');
     }
 
     function getCookie(name) {
@@ -686,12 +686,13 @@
             li.innerHTML = `
                 <div class="task-content">
                     <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
-                    <div class="task-text">${task.text}</div>
+                    <div class="task-text"></div>
                 </div>
                 <div class="task-actions">
-                    <button onclick="deleteTask(${task.id})">🗑️</button>
+                    <button type="button" aria-label="Delete task" onclick="deleteTask(${task.id})">Delete</button>
                 </div>
             `;
+            li.querySelector('.task-text').textContent = task.text;
             taskList.appendChild(li);
         });
     }

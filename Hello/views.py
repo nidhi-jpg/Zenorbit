@@ -53,7 +53,10 @@ def todo_view(request):
     if request.method == 'POST':
         try:
             print(f"Raw request body: {request.body}")
-            data = json.loads(request.body)
+            if request.content_type == 'application/json':
+                data = json.loads(request.body or '{}')
+            else:
+                data = request.POST
             action = data.get('action')
             print(f"POST request received. Action: {action}")
             print(f"POST data: {data}")
@@ -100,15 +103,16 @@ def todo_view(request):
                     print(f"Task toggled: {task}")
                     
                     # Record activity
-                    activity = Activity.objects.create(
+                    activity = Activity(
                         user=request.user,
                         activity_type='todo',
-                        details={
+                    )
+                    activity.set_details({
                             'action': 'complete' if task.completed else 'uncomplete',
                             'task_id': task.id,
                             'task_text': task.text
-                        }
-                    )
+                    })
+                    activity.save()
                     
                     # Update stats
                     stats, _ = TodoStats.objects.get_or_create(user=request.user)
@@ -204,32 +208,39 @@ def pomodoro_view(request):
 
 @login_required
 def notes_view(request):
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         name = request.POST.get('name')
         desc = request.POST.get('desc')
         
         if not name or not desc:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Please fill in all fields'
-            })
-        
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please fill in all fields'
+                })
+            messages.error(request, 'Please fill in all fields')
+            return redirect('Hello:notes')
+
         note = Note.objects.create(
             user=request.user,
             name=name,
             desc=desc
         )
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Note saved successfully!',
-            'note': {
-                'id': note.id,
-                'name': note.name,
-                'desc': note.desc,
-                'date': note.date.strftime("%B %d, %Y, %I:%M %p")
-            }
-        })
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Note saved successfully!',
+                'note': {
+                    'id': note.id,
+                    'name': note.name,
+                    'desc': note.desc,
+                    'date': note.date.strftime("%B %d, %Y, %I:%M %p")
+                }
+            })
+
+        messages.success(request, 'Note saved successfully!')
+        return redirect('Hello:notes')
     
     notes = Note.objects.filter(user=request.user).order_by('-date')
     return render(request, 'notes.html', {'notes': notes})
